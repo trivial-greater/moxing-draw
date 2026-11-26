@@ -986,5 +986,73 @@ window.MoxingDraw = window.MoxingDraw || {};
     ctx.fillText('MOXING · ' + style.toUpperCase(), SIZE - 74, 28);
   };
 
+  Painter.prototype.compositeImage = function (canvas, img, rawPrompt, opts) {
+    var style = opts.style || 'soul';
+    var chaos = (opts.chaos != null ? opts.chaos : 78) / 100;
+    var seed = (MD.hashString(rawPrompt || 'moxing') + (opts.seedOffset || 0) * 7919 + (opts.wobbleFrame || 0) * 1337) >>> 0;
+    var rng = MD.createRng(seed);
+
+    var ctx = this.offCtx;
+    ctx.clearRect(0, 0, SIZE, SIZE);
+
+    // Draw AI-generated image with cover-fit & slight comedic wobble if animated
+    var jx = opts.wobbleFrame ? (rng() - 0.5) * 10 * chaos : 0;
+    var jy = opts.wobbleFrame ? (rng() - 0.5) * 10 * chaos : 0;
+    var scale = Math.max(SIZE / img.width, SIZE / img.height);
+    var dw = img.width * scale;
+    var dh = img.height * scale;
+    var dx = (SIZE - dw) / 2 + jx;
+    var dy = (SIZE - dh) / 2 + jy;
+    ctx.drawImage(img, dx, dy, dw, dh);
+
+    // Optional chaotic radial speedlines around outer edges
+    if (chaos > 0.6 || style === 'meme') {
+      this._drawSpeedLines(ctx, style, chaos * 0.75, rng);
+    }
+
+    // Optional hilarious meme stickers around borders
+    if (opts.showStickers !== false) {
+      var dummyParsed = MD.parsePrompt(rawPrompt, opts.seedOffset || 0);
+      this._drawChaosStickers(ctx, dummyParsed, style, chaos * 0.85, rng);
+    }
+
+    // Apply style post-processing (pixelation / RGB glitch / CRT / abstract confetti)
+    var outCtx = canvas.getContext('2d');
+    outCtx.clearRect(0, 0, SIZE, SIZE);
+    this._applyStylePost(outCtx, this.off, style, chaos, rng);
+
+    // Crisp Meme Caption overlay
+    if (opts.showCaption) {
+      var cap = (opts.customCaption || '').trim() || ('灵魂魔性版：' + rawPrompt.slice(0, 14) + (rawPrompt.length > 14 ? '…' : ''));
+      this._drawMemeCaption(outCtx, cap, rawPrompt, style);
+    }
+    this._drawCornerStamp(outCtx, opts.badgeText || ('AI · ' + style.toUpperCase()));
+  };
+
+  Painter.prototype.drawNoticeCard = function (canvas, title, lines) {
+    var ctx = canvas.getContext('2d');
+    var rng = MD.createRng(921);
+    ctx.clearRect(0, 0, SIZE, SIZE);
+    this._drawBackground(ctx, 'rainbow', 'meme', 0.5, rng, 3);
+
+    wobbleRect(ctx, 56, 118, SIZE - 112, 396, rng, 4, '#fffdf5', INK, 6);
+    wobbleRect(ctx, 96, 86, SIZE - 192, 54, rng, 3, '#ff4d94', INK, 5);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 22px "Microsoft YaHei", sans-serif';
+    ctx.fillText(title, SIZE / 2, 121);
+
+    ctx.font = 'bold 54px sans-serif';
+    ctx.fillText('🤯', SIZE / 2, 212);
+
+    ctx.fillStyle = INK;
+    ctx.font = 'bold 18px "Microsoft YaHei", sans-serif';
+    for (var i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], SIZE / 2, 266 + i * 38, SIZE - 150);
+    }
+    this._drawCornerStamp(ctx, 'NOTICE');
+  };
+
   MD.painter = new Painter();
 })(window.MoxingDraw);
