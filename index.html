@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>灵魂魔性画师 · MOXING DRAW — 输入描述秒出魔性神图</title>
+  <title>灵魂魔性画师 v2.0 · MOXING DRAW — 真 AI 魔性生图小程序</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app-wrap">
     <header class="top-banner">
       <div class="brand">
-        <span class="brand-sticker">魔性生图 v1.0</span>
+        <span class="brand-sticker">真 AI 魔性生图 v2.0</span>
         <h1>灵魂魔性画师 <small>MOXING DRAW</small></h1>
-        <p class="subtitle">输入任意描述，灵魂画师当场给你整出一张精神状态极其超前的魔性神图</p>
+        <p class="subtitle">输入任意脑洞描述（比如「数学家梵高」），免费真 AI 实时生成高度贴合又极其魔性的神图！</p>
       </div>
-      <div class="engine-switch">
-        <button id="mode-local" type="button" class="pill-btn active" data-mode="local">⚡ 灵魂画师（离线秒出）</button>
-        <button id="mode-ai" type="button" class="pill-btn" data-mode="ai">🤖 AI 魔性增强（可选 Key）</button>
+      <div class="engine-switch" id="engine-switch">
+        <button id="mode-free-ai" type="button" class="pill-btn active" data-mode="free-ai">🤖 免费真 AI（免 Key）</button>
+        <button id="mode-custom-ai" type="button" class="pill-btn" data-mode="custom-ai">🔑 自定义 API（硅基/Gemini）</button>
+        <button id="mode-local" type="button" class="pill-btn" data-mode="local">🤪 纯离线涂鸦</button>
       </div>
     </header>
 
@@ -25,44 +26,44 @@
       <section class="panel control-panel">
         <div class="field-block">
           <div class="label-row">
-            <label for="prompt-input">✍️ 输入你的脑洞描述</label>
-            <button id="btn-random" class="tiny-btn" type="button">🎲 随机抽象灵感</button>
+            <label for="prompt-input">✍️ 输入你的任意脑洞描述（中文 / 英文皆可）</label>
+            <button id="btn-random" class="tiny-btn" type="button">🎲 随机抽象脑洞</button>
           </div>
           <textarea
             id="prompt-input"
             rows="3"
-            placeholder="例如：一只戴墨镜的胖橘猫骑着霸王龙在火星喝奶茶，满天飞钞票..."
-          >一只戴墨镜的胖橘猫骑着霸王龙在火星喝奶茶</textarea>
+            placeholder="随便写任何奇葩画面：数学家梵高、爱因斯坦在菜市场砍价、秦始皇骑电瓶车送外卖..."
+          >数学家梵高</textarea>
           <div class="preset-chips" id="preset-chips"></div>
         </div>
 
         <div class="field-block">
-          <label>🎨 选择魔性画风</label>
+          <label>🎨 选择魔性画风（同时驱动 AI 提示词 + 后期特效）</label>
           <div class="style-grid" id="style-grid">
             <button type="button" class="style-card active" data-style="soul">
               <span class="st-ico">🤪</span>
-              <b>暴走灵魂手绘</b>
-              <small>抖动粗黑线 + 颜艺拉满</small>
+              <b>暴走喜剧漫</b>
+              <small>夸张颜艺 + 魔性漫画</small>
             </button>
             <button type="button" class="style-card" data-style="meme">
               <span class="st-ico">🐼</span>
-              <b>精神污染表情包</b>
-              <small>放射线 + 爆笑梗字</small>
+              <b>精神污染梗图</b>
+              <small>上下黑边梗字 + 夸张表情</small>
             </button>
             <button type="button" class="style-card" data-style="pixel">
               <span class="st-ico">👾</span>
               <b>鬼畜复古像素</b>
-              <small>8-bit 锯齿 + RGB 错位</small>
+              <small>像素风 + RGB 故障</small>
             </button>
             <button type="button" class="style-card" data-style="cyber">
               <span class="st-ico">⚡</span>
               <b>赛博霓虹崩坏</b>
-              <small>荧光描边 + CRT 故障</small>
+              <small>荧光科幻 + CRT 扫描</small>
             </button>
             <button type="button" class="style-card" data-style="abstract">
               <span class="st-ico">🌀</span>
               <b>抽象毕加索</b>
-              <small>彻底发疯 + 贴纸轰炸</small>
+              <small>扭曲名画 + 疯癫构图</small>
             </button>
           </div>
         </div>
@@ -74,33 +75,52 @@
               <span id="chaos-val" class="val-badge">78% 精神超前</span>
             </div>
             <input id="chaos-slider" type="range" min="15" max="100" value="78" />
+            <label class="check-label small-check">
+              <input id="chk-stickers" type="checkbox" checked />
+              <span>叠加魔性弹幕贴纸（离谱!/绝了）</span>
+            </label>
           </div>
           <div class="caption-box">
             <label class="check-label">
               <input id="chk-caption" type="checkbox" checked />
-              <span>自动印上魔性配文</span>
+              <span>底部印上魔性配文</span>
             </label>
-            <input id="custom-caption" type="text" placeholder="留空则自动生成爆笑配文..." />
+            <input id="custom-caption" type="text" placeholder="留空则按描述自动配文..." />
           </div>
         </div>
 
-        <!-- Optional BYOK Gemini AI Drawer -->
+        <!-- Multi-Provider Custom AI Drawer -->
         <div id="ai-config" class="ai-box hidden">
           <div class="label-row">
-            <label for="api-key-input">🔑 Gemini API Key（仅存本机浏览器，不上传第三方）</label>
+            <label for="provider-select">⚙️ 选择自定义生图服务（Key 仅保存在你本地浏览器）</label>
           </div>
-          <input id="api-key-input" type="password" placeholder="粘贴 AIza... 开头的 Gemini API Key" />
-          <p class="ai-hint">调用官方 Gemini 图像接口生成“夸张魔性暴漫风”真 AI 图像，并自动叠加你的配文与边框；若未填 Key 或网络失败将提示切换离线灵魂画师。</p>
+          <div class="provider-row">
+            <select id="provider-select">
+              <option value="siliconflow">🇨🇳 硅基流动 SiliconFlow（国内直连 · 免费中文 Kolors）</option>
+              <option value="pollinations">🌸 Pollinations 个人 Key（GitHub 登录免费领）</option>
+              <option value="huggingface">🤗 Hugging Face Token（免费 FLUX.1-schnell）</option>
+              <option value="gemini">💎 Google Gemini（gemini-2.5-flash-image）</option>
+              <option value="openai">🔧 自定义 OpenAI 兼容接口（中转站）</option>
+            </select>
+          </div>
+          <input id="api-key-input" type="password" placeholder="粘贴对应平台的 API Key（sk-... / AIza...）" />
+          <div id="custom-endpoint-fields" class="endpoint-row hidden">
+            <input id="base-url-input" type="text" placeholder="Base URL，如 https://api.siliconflow.cn/v1" />
+            <input id="model-input" type="text" placeholder="模型名，如 Kwai-Kolors/Kolors" />
+          </div>
+          <p id="provider-hint" class="ai-hint">
+            推荐：前往 <a href="https://cloud.siliconflow.cn/account/ak" target="_blank" rel="noopener">cloud.siliconflow.cn</a> 免费注册即可领取额度，默认使用国内直连免费中文模型 <code>Kwai-Kolors/Kolors</code>。
+          </p>
         </div>
 
         <div class="cta-row">
-          <button id="btn-generate" class="generate-btn" type="button">🔥 立即生成魔性神图</button>
-          <button id="btn-reroll" class="reroll-btn" type="button" title="保持描述不变，换一个更离谱的姿势和构图">🔄 换个姿势</button>
+          <button id="btn-generate" class="generate-btn" type="button">🔥 真 AI 生成魔性神图</button>
+          <button id="btn-reroll" class="reroll-btn" type="button" title="换个随机种子重新生成一张更离谱的">🔄 再抽一张</button>
         </div>
 
         <div class="parser-box">
-          <div class="parser-head">🧠 灵魂画师已识别的画面元素</div>
-          <div id="parsed-tags" class="parsed-tags"></div>
+          <div class="parser-head">🧠 当前 AI 魔性扩写咒语 &amp; 状态</div>
+          <div id="prompt-preview" class="prompt-preview">准备就绪：输入任意描述点击生成即可出图！</div>
         </div>
       </section>
 
@@ -110,7 +130,8 @@
           <canvas id="art-canvas" width="640" height="640"></canvas>
           <div id="loading-overlay" class="loading-overlay hidden">
             <div class="spinner">🤪</div>
-            <p id="loading-text">灵魂画师正在疯狂甩笔中...</p>
+            <p id="loading-text">AI 灵魂画师正在疯狂作画（约 4~8 秒）...</p>
+            <small id="loading-sub" class="loading-sub">正在把你的描述魔性化并渲染高清图像</small>
           </div>
         </div>
 
@@ -127,7 +148,7 @@
             <button id="btn-clear-hist" class="tiny-btn" type="button">清空</button>
           </div>
           <div id="history-strip" class="history-strip">
-            <span class="empty-hint">还没有历史作品，快点生成一张吧！</span>
+            <span class="empty-hint">正在生成第一张大作...</span>
           </div>
         </div>
       </section>
