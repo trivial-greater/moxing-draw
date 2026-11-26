@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>灵魂魔性画师 · MOXING DRAW — 输入描述秒出魔性神图</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-wrap">
+    <header class="top-banner">
+      <div class="brand">
+        <span class="brand-sticker">魔性生图 v1.0</span>
+        <h1>灵魂魔性画师 <small>MOXING DRAW</small></h1>
+        <p class="subtitle">输入任意描述，灵魂画师当场给你整出一张精神状态极其超前的魔性神图</p>
+      </div>
+      <div class="engine-switch">
+        <button id="mode-local" type="button" class="pill-btn active" data-mode="local">⚡ 灵魂画师（离线秒出）</button>
+        <button id="mode-ai" type="button" class="pill-btn" data-mode="ai">🤖 AI 魔性增强（可选 Key）</button>
+      </div>
+    </header>
+
+    <main class="studio-grid">
+      <!-- Left Control Panel -->
+      <section class="panel control-panel">
+        <div class="field-block">
+          <div class="label-row">
+            <label for="prompt-input">✍️ 输入你的脑洞描述</label>
+            <button id="btn-random" class="tiny-btn" type="button">🎲 随机抽象灵感</button>
+          </div>
+          <textarea
+            id="prompt-input"
+            rows="3"
+            placeholder="例如：一只戴墨镜的胖橘猫骑着霸王龙在火星喝奶茶，满天飞钞票..."
+          >一只戴墨镜的胖橘猫骑着霸王龙在火星喝奶茶</textarea>
+          <div class="preset-chips" id="preset-chips"></div>
+        </div>
+
+        <div class="field-block">
+          <label>🎨 选择魔性画风</label>
+          <div class="style-grid" id="style-grid">
+            <button type="button" class="style-card active" data-style="soul">
+              <span class="st-ico">🤪</span>
+              <b>暴走灵魂手绘</b>
+              <small>抖动粗黑线 + 颜艺拉满</small>
+            </button>
+            <button type="button" class="style-card" data-style="meme">
+              <span class="st-ico">🐼</span>
+              <b>精神污染表情包</b>
+              <small>放射线 + 爆笑梗字</small>
+            </button>
+            <button type="button" class="style-card" data-style="pixel">
+              <span class="st-ico">👾</span>
+              <b>鬼畜复古像素</b>
+              <small>8-bit 锯齿 + RGB 错位</small>
+            </button>
+            <button type="button" class="style-card" data-style="cyber">
+              <span class="st-ico">⚡</span>
+              <b>赛博霓虹崩坏</b>
+              <small>荧光描边 + CRT 故障</small>
+            </button>
+            <button type="button" class="style-card" data-style="abstract">
+              <span class="st-ico">🌀</span>
+              <b>抽象毕加索</b>
+              <small>彻底发疯 + 贴纸轰炸</small>
+            </button>
+          </div>
+        </div>
+
+        <div class="field-block sliders-row">
+          <div class="slider-box">
+            <div class="label-row">
+              <label for="chaos-slider">🌶️ 魔性浓度</label>
+              <span id="chaos-val" class="val-badge">78% 精神超前</span>
+            </div>
+            <input id="chaos-slider" type="range" min="15" max="100" value="78" />
+          </div>
+          <div class="caption-box">
+            <label class="check-label">
+              <input id="chk-caption" type="checkbox" checked />
+              <span>自动印上魔性配文</span>
+            </label>
+            <input id="custom-caption" type="text" placeholder="留空则自动生成爆笑配文..." />
+          </div>
+        </div>
+
+        <!-- Optional BYOK Gemini AI Drawer -->
+        <div id="ai-config" class="ai-box hidden">
+          <div class="label-row">
+            <label for="api-key-input">🔑 Gemini API Key（仅存本机浏览器，不上传第三方）</label>
+          </div>
+          <input id="api-key-input" type="password" placeholder="粘贴 AIza... 开头的 Gemini API Key" />
+          <p class="ai-hint">调用官方 Gemini 图像接口生成“夸张魔性暴漫风”真 AI 图像，并自动叠加你的配文与边框；若未填 Key 或网络失败将提示切换离线灵魂画师。</p>
+        </div>
+
+        <div class="cta-row">
+          <button id="btn-generate" class="generate-btn" type="button">🔥 立即生成魔性神图</button>
+          <button id="btn-reroll" class="reroll-btn" type="button" title="保持描述不变，换一个更离谱的姿势和构图">🔄 换个姿势</button>
+        </div>
+
+        <div class="parser-box">
+          <div class="parser-head">🧠 灵魂画师已识别的画面元素</div>
+          <div id="parsed-tags" class="parsed-tags"></div>
+        </div>
+      </section>
+
+      <!-- Right Canvas Preview Stage -->
+      <section class="panel stage-panel">
+        <div class="canvas-frame" id="canvas-frame">
+          <canvas id="art-canvas" width="640" height="640"></canvas>
+          <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="spinner">🤪</div>
+            <p id="loading-text">灵魂画师正在疯狂甩笔中...</p>
+          </div>
+        </div>
+
+        <div class="action-bar">
+          <button id="btn-download" class="act-btn primary" type="button">💾 下载 PNG 原图</button>
+          <button id="btn-copy" class="act-btn" type="button">📋 复制图片</button>
+          <button id="btn-wobble" class="act-btn" type="button">🎬 鬼畜抖动预览: 关</button>
+          <span id="status-toast" class="toast"></span>
+        </div>
+
+        <div class="history-wrap">
+          <div class="history-head">
+            <span>🖼️ 最近生成的魔性大作（点击回看）</span>
+            <button id="btn-clear-hist" class="tiny-btn" type="button">清空</button>
+          </div>
+          <div id="history-strip" class="history-strip">
+            <span class="empty-hint">还没有历史作品，快点生成一张吧！</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="src/parser.js"></script>
+  <script src="src/painter.js"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>
